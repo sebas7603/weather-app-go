@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -12,7 +11,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/joho/godotenv"
 
-	"github.com/sebas7603/weather-app-go/models"
+	"github.com/sebas7603/weather-app-go/api"
 )
 
 var err error
@@ -37,18 +36,6 @@ var qContinue = &survey.Confirm{
 
 var searchValue string
 var searchInput = &survey.Input{Message: "Place to search:"}
-
-var mapboxParams = map[string]string{
-	"language": "es",
-	"limit":    "6",
-	//"proximity": "ip",
-	"types": "place",
-}
-
-var openWeatherParams = map[string]string{
-	"lang":  "es",
-	"units": "metric",
-}
 
 func main() {
 	err = godotenv.Load(".env")
@@ -97,19 +84,9 @@ func main() {
 			survey.AskOne(searchInput, &searchValue, survey.WithValidator(survey.Required))
 
 			// Request to Mapbox API
-			requestMapboxURL := fmt.Sprintf("%s/%s.json?access_token=%s", os.Getenv("MAPBOX_URL"), searchValue, os.Getenv("MAPBOX_TOKEN"))
-			response, err := http.Get(buildUrlWithParams(requestMapboxURL, mapboxParams))
+			mapboxData, err := api.RequestMapboxAPI(searchValue)
 			if err != nil {
-				fmt.Println("Error making request to Mapbox API:", err)
-				return
-			}
-			defer response.Body.Close()
-
-			// Checking Mapbox response
-			var mapboxData models.MapboxResponse
-			err = json.NewDecoder(response.Body).Decode(&mapboxData)
-			if err != nil {
-				fmt.Println("Error decoding JSON response:", err)
+				fmt.Println("Error in Mapbox request:", err)
 				return
 			}
 
@@ -170,21 +147,9 @@ func main() {
 			}
 
 			// Request to Open Weather API
-			openWeatherParams["lon"] = fmt.Sprintf("%v", selectedPlace.Center[0])
-			openWeatherParams["lat"] = fmt.Sprintf("%v", selectedPlace.Center[1])
-			requestOpenWeatherURL := fmt.Sprintf("%s?appid=%s", os.Getenv("OPENWEATHER_URL"), os.Getenv("OPENWEATHER_TOKEN"))
-			response, err = http.Get(buildUrlWithParams(requestOpenWeatherURL, openWeatherParams))
+			openweatherData, err := api.RequestOpenWeatherAPI(selectedPlace.Center[1], selectedPlace.Center[0])
 			if err != nil {
-				fmt.Println("Error making request to Open Weather API:", err)
-				return
-			}
-			defer response.Body.Close()
-
-			// Checking Open Weather response
-			var openWeatherData models.OpenWeatherResponse
-			err = json.NewDecoder(response.Body).Decode(&openWeatherData)
-			if err != nil {
-				fmt.Println("Error decoding JSON response:", err)
+				fmt.Println("Error in Open Weather request:", err)
 				return
 			}
 
@@ -193,9 +158,9 @@ func main() {
 			fmt.Printf("City:        %s\n", selectedPlace.PlaceName)
 			fmt.Printf("Lon:         %v\n", selectedPlace.Center[0])
 			fmt.Printf("Lat:         %v\n", selectedPlace.Center[1])
-			fmt.Printf("Temperature: %v\n", openWeatherData.Main.Temp)
-			fmt.Printf("Min:         %v\n", openWeatherData.Main.TempMin)
-			fmt.Printf("Max:         %v\n", openWeatherData.Main.TempMax)
+			fmt.Printf("Temperature: %v\n", openweatherData.Main.Temp)
+			fmt.Printf("Min:         %v\n", openweatherData.Main.TempMin)
+			fmt.Printf("Max:         %v\n", openweatherData.Main.TempMax)
 			fmt.Println("")
 
 			survey.AskOne(qContinue, &rContinue)
