@@ -45,7 +45,6 @@ func main() {
 		switch mainOption {
 
 		case "New Search":
-
 			searchValue := ui.ShowPlaceInput()
 
 			// Request to Mapbox API
@@ -90,15 +89,7 @@ func main() {
 			}
 
 			// Show the result data
-			fmt.Printf("\nCity Info:\n")
-			fmt.Printf("City:        %s\n", selectedPlace.PlaceName)
-			fmt.Printf("Lon:         %v\n", selectedPlace.Center[0])
-			fmt.Printf("Lat:         %v\n", selectedPlace.Center[1])
-			fmt.Printf("Temperature: %v\n", openweatherData.Main.Temp)
-			fmt.Printf("Min:         %v\n", openweatherData.Main.TempMin)
-			fmt.Printf("Max:         %v\n", openweatherData.Main.TempMax)
-			fmt.Println("")
-
+			ui.PrintDataResults(*selectedPlace, *openweatherData)
 			ui.ShowContinue()
 			break
 

@@ -33,12 +33,10 @@ type Geometry struct {
 }
 
 type ContextData struct {
-	ID         string `json:"id"`
-	MapboxID   string `json:"mapbox_id"`
-	Wikidata   string `json:"wikidata"`
-	ShortCode  string `json:"short_code"`
-	TextEs     string `json:"text_es"`
-	LanguageEs string `json:"language_es"`
-	Text       string `json:"text"`
-	Language   string `json:"language"`
+	ID        string `json:"id"`
+	MapboxID  string `json:"mapbox_id"`
+	Wikidata  string `json:"wikidata"`
+	ShortCode string `json:"short_code"`
+	Text      string `json:"text"`
+	Language  string `json:"language"`
 }
