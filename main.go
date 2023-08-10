@@ -11,6 +11,7 @@ import (
 
 	"github.com/sebas7603/weather-app-go/api"
 	"github.com/sebas7603/weather-app-go/utils"
+	"github.com/sebas7603/weather-app-go/utils/helpers"
 )
 
 var err error
@@ -105,15 +106,11 @@ func main() {
 			// Avoid duplicate entries
 			for i, search := range searches {
 				if strings.ToLower(search) == strings.ToLower(selectedPlace.PlaceName) {
-					searches = removeFromSlice(searches, i)
+					searches = helpers.RemoveFromSliceByIndex(searches, i)
 					break
 				}
 			}
-			if len(searches) < 6 {
-				searches = append([]string{strings.ToLower(selectedPlace.PlaceName)}, searches...)
-			} else {
-				searches = append([]string{strings.ToLower(selectedPlace.PlaceName)}, searches[:5]...)
-			}
+			searches = helpers.PrependSliceWithLimit(searches, selectedPlace.PlaceName, 6)
 
 			err = utils.WriteToFileReplacingData(dbPath, searches)
 			if err != nil {
@@ -159,9 +156,4 @@ func buildUrlWithParams(baseURL string, params map[string]string) (paramsURL str
 		paramsURL = fmt.Sprintf("%s&%s=%s", paramsURL, index, param)
 	}
 	return
-}
-
-// Remove a value into a slice at a given index, preserving the order of existing elements
-func removeFromSlice(array []string, index int) []string {
-	return append(array[:index], array[index+1:]...)
 }

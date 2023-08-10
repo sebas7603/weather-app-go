@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/sebas7603/weather-app-go/models"
+	"github.com/sebas7603/weather-app-go/utils/helpers"
 )
 
 var openWeatherResponse models.OpenWeatherResponse
@@ -17,8 +18,9 @@ var openWeatherParams = map[string]string{
 func RequestOpenWeatherAPI(lat, lon float64) (*models.OpenWeatherResponse, error) {
 	openWeatherParams["lat"] = fmt.Sprintf("%v", lat)
 	openWeatherParams["lon"] = fmt.Sprintf("%v", lon)
-	requestOpenWeatherURL := fmt.Sprintf("%s?appid=%s", os.Getenv("OPENWEATHER_URL"), os.Getenv("OPENWEATHER_TOKEN"))
-	response, err := http.Get(buildUrlWithParams(requestOpenWeatherURL, openWeatherParams))
+	openWeatherParams["appid"] = os.Getenv("OPENWEATHER_TOKEN")
+
+	response, err := http.Get(helpers.BuildURLWithParams(os.Getenv("OPENWEATHER_URL"), openWeatherParams))
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/sebas7603/weather-app-go/models"
+	"github.com/sebas7603/weather-app-go/utils/helpers"
 )
 
 var mapboxResponse models.MapboxResponse
@@ -16,8 +17,10 @@ var mapboxParams = map[string]string{
 }
 
 func RequestMapboxAPI(searchValue string) (*models.MapboxResponse, error) {
-	requestMapboxURL := fmt.Sprintf("%s/%s.json?access_token=%s", os.Getenv("MAPBOX_URL"), searchValue, os.Getenv("MAPBOX_TOKEN"))
-	response, err := http.Get(buildUrlWithParams(requestMapboxURL, mapboxParams))
+	mapboxParams["access_token"] = os.Getenv("MAPBOX_TOKEN")
+	requestMapboxURL := fmt.Sprintf("%s/%s.json", os.Getenv("MAPBOX_URL"), searchValue)
+
+	response, err := http.Get(helpers.BuildURLWithParams(requestMapboxURL, mapboxParams))
 	if err != nil {
 		return nil, err
 	}
@@ -33,12 +36,4 @@ func parseMapboxResponse(response *http.Response) (*models.MapboxResponse, error
 	}
 
 	return &mapboxResponse, nil
-}
-
-func buildUrlWithParams(baseURL string, params map[string]string) (paramsURL string) {
-	paramsURL = baseURL
-	for index, param := range params {
-		paramsURL = fmt.Sprintf("%s&%s=%s", paramsURL, index, param)
-	}
-	return
 }
