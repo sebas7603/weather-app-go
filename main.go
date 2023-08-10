@@ -16,7 +16,8 @@ import (
 var err error
 
 var file *os.File
-var dbPath = "./db/database.json"
+var dbFolder = "db"
+var dbPath = fmt.Sprintf("./%s/database.json", dbFolder)
 
 var searches []string
 
@@ -132,6 +133,16 @@ func main() {
 	if err != nil {
 		fmt.Println("Error loading .env file")
 		return
+	}
+
+	// Creating db folder if not exists
+	_, err = os.Stat(dbFolder)
+	if os.IsNotExist(err) {
+		errDir := os.Mkdir(dbFolder, 0755)
+		if errDir != nil {
+			fmt.Println("Error creating folder:", errDir)
+			return
+		}
 	}
 
 	file, err = os.Open(dbPath)
