@@ -13,10 +13,12 @@ import (
 
 var err error
 
+var searches []string
+
 var mainOption string
 var mainMenu = &survey.Select{
 	Message: "Choose an option:",
-	Options: []string{"Search", "History", "Exit"},
+	Options: []string{"New Search", "Search History", "Exit"},
 }
 
 var rContinue bool
@@ -136,7 +138,7 @@ func main() {
 
 		switch mainOption {
 
-		case "Search":
+		case "New Search":
 			survey.AskOne(searchInput, &searchValue, survey.WithValidator(survey.Required))
 
 			// Request to Mapbox API
@@ -157,9 +159,9 @@ func main() {
 			}
 
 			// Creating menu options slice
-			var placeIndexes []string
+			placeIndexes := []string{"0"}
 			for i := 0; i < len(mapboxData.Features); i++ {
-				placeIndexes = append(placeIndexes, strconv.Itoa(i))
+				placeIndexes = append(placeIndexes, strconv.Itoa(i+1))
 			}
 
 			// Menu for select a place
@@ -168,15 +170,27 @@ func main() {
 				Message: "Select a place:",
 				Options: placeIndexes,
 				Description: func(value string, index int) string {
+					if value == "0" {
+						return "Cancel"
+					}
 					i, _ := strconv.Atoi(value)
-					return mapboxData.Features[i].PlaceName
+					return mapboxData.Features[i-1].PlaceName
 				},
 			}
 
-			// Get the selected place
+			// Get the selected place and add to history
 			survey.AskOne(placesMenu, &placeIndex)
+			if placeIndex == "0" {
+				break
+			}
 			i, _ := strconv.Atoi(placeIndex)
-			selectedPlace := mapboxData.Features[i]
+			selectedPlace := mapboxData.Features[i-1]
+
+			if len(searches) < 6 {
+				searches = append([]string{selectedPlace.PlaceName}, searches...)
+			} else {
+				searches = append([]string{selectedPlace.PlaceName}, searches[:5]...)
+			}
 
 			// Request to Open Weather API
 			openWeatherParams["lon"] = fmt.Sprintf("%v", selectedPlace.Center[0])
@@ -210,8 +224,12 @@ func main() {
 			survey.AskOne(qContinue, &rContinue)
 			break
 
-		case "History":
-			fmt.Printf("History selected!!\n\n")
+		case "Search History":
+			for _, search := range searches {
+				fmt.Printf("%s\n", search)
+			}
+			fmt.Printf("\n\n")
+
 			survey.AskOne(qContinue, &rContinue)
 			break
 		}
