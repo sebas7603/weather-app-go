@@ -1,0 +1,21 @@
+# Compiled binary files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go specific
+/bin/
+/vendor/
+
+# IDE specific
+.vscode/
+.idea/
+
+# System or process files
+.DS_Store
+Thumbs.db
+
+# Local configuration
+.env
