@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/sebas7603/weather-app-go/api"
 	"github.com/sebas7603/weather-app-go/config"
@@ -38,16 +37,11 @@ func Start() error {
 			if err != nil {
 				return err
 			}
-
 			ui.ShowContinue()
 			break
 
 		case "Search History":
-			for _, search := range searchHistory {
-				fmt.Printf("%s\n", strings.Title(search))
-			}
-			fmt.Printf("\n\n")
-
+			ui.PrintSearchHistory(searchHistory)
 			ui.ShowContinue()
 			break
 		}

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/sebas7603/weather-app-go/models"
 )
@@ -34,6 +35,15 @@ func PrintDataResults(place models.Feature, weather models.OpenWeatherResponse) 
 	fmt.Printf("%sMin:  %s%v °C\n", HiGreen, HiCyan, weather.Main.TempMin)
 	fmt.Printf("%sMax:  %s%v °C\n", HiGreen, HiCyan, weather.Main.TempMax)
 	fmt.Printf("%sWind: %s%v km/h\n", HiGreen, HiCyan, weather.Wind.Speed)
+	fmt.Printf("%s\n", White)
+
+	return
+}
+
+func PrintSearchHistory(searchHistory []string) {
+	for i, search := range searchHistory {
+		fmt.Printf("%s%d. - %s%s\n", HiGreen, i+1, HiCyan, strings.Title(search))
+	}
 	fmt.Printf("%s\n", White)
 
 	return
