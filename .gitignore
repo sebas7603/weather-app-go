@@ -19,4 +19,4 @@ Thumbs.db
 
 # Local configuration
 .env
-#/db/*
+/db/*
