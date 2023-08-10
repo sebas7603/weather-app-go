@@ -2,40 +2,23 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/joho/godotenv"
 
 	"github.com/sebas7603/weather-app-go/api"
+	"github.com/sebas7603/weather-app-go/ui"
 	"github.com/sebas7603/weather-app-go/utils"
 	"github.com/sebas7603/weather-app-go/utils/helpers"
 )
 
 var err error
 
-var file *os.File
 var dbFolder = "db"
 var dbPath = fmt.Sprintf("%s/database.json", dbFolder)
 
 var searches []string
-
-var mainOption string
-var mainMenu = &survey.Select{
-	Message: "Choose an option:",
-	Options: []string{"New Search", "Search History", "Exit"},
-}
-
-var rContinue bool
-var qContinue = &survey.Confirm{
-	Message: "Continue ?",
-	Default: true,
-}
-
-var searchValue string
-var searchInput = &survey.Input{Message: "Place to search:"}
 
 func main() {
 	err = godotenv.Load(".env")
@@ -56,17 +39,14 @@ func main() {
 		return
 	}
 
+	mainOption := ""
 	for mainOption != "Exit" {
-		// Clear console
-		fmt.Print("\033[H\033[2J")
-
-		// First menu
-		survey.AskOne(mainMenu, &mainOption)
-
+		mainOption = ui.ShowMainMenu()
 		switch mainOption {
 
 		case "New Search":
-			survey.AskOne(searchInput, &searchValue, survey.WithValidator(survey.Required))
+
+			searchValue := ui.ShowPlaceInput()
 
 			// Request to Mapbox API
 			mapboxData, err := api.RequestMapboxAPI(searchValue)
@@ -82,26 +62,10 @@ func main() {
 			}
 
 			// Menu for select a place
-			var placeIndex string
-			placesMenu := &survey.Select{
-				Message: "Select a place:",
-				Options: placeIndexes,
-				Description: func(value string, index int) string {
-					if value == "0" {
-						return "Cancel"
-					}
-					i, _ := strconv.Atoi(value)
-					return mapboxData.Features[i-1].PlaceName
-				},
-			}
-
-			// Get the selected place and add to history
-			survey.AskOne(placesMenu, &placeIndex)
-			if placeIndex == "0" {
+			selectedPlace := ui.ShowPlacesMenu(placeIndexes, mapboxData)
+			if selectedPlace == nil {
 				break
 			}
-			i, _ := strconv.Atoi(placeIndex)
-			selectedPlace := mapboxData.Features[i-1]
 
 			// Avoid duplicate entries
 			for i, search := range searches {
@@ -135,7 +99,7 @@ func main() {
 			fmt.Printf("Max:         %v\n", openweatherData.Main.TempMax)
 			fmt.Println("")
 
-			survey.AskOne(qContinue, &rContinue)
+			ui.ShowContinue()
 			break
 
 		case "Search History":
@@ -144,16 +108,8 @@ func main() {
 			}
 			fmt.Printf("\n\n")
 
-			survey.AskOne(qContinue, &rContinue)
+			ui.ShowContinue()
 			break
 		}
 	}
-}
-
-func buildUrlWithParams(baseURL string, params map[string]string) (paramsURL string) {
-	paramsURL = baseURL
-	for index, param := range params {
-		paramsURL = fmt.Sprintf("%s&%s=%s", paramsURL, index, param)
-	}
-	return
 }
