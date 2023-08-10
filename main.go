@@ -11,6 +11,8 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/joho/godotenv"
+
+	"github.com/sebas7603/weather-app-go/models"
 )
 
 var err error
@@ -46,86 +48,6 @@ var mapboxParams = map[string]string{
 var openWeatherParams = map[string]string{
 	"lang":  "es",
 	"units": "metric",
-}
-
-type MapboxResponse struct {
-	Type     string   `json:"type"`
-	Query    []string `json:"query"`
-	Features []struct {
-		ID         string   `json:"id"`
-		Type       string   `json:"type"`
-		PlaceType  []string `json:"place_type"`
-		Relevance  float64  `json:"relevance"`
-		Properties struct {
-			MapboxID string `json:"mapbox_id"`
-			Wikidata string `json:"wikidata"`
-		} `json:"properties"`
-		TextEs      string    `json:"text_es"`
-		LanguageEs  string    `json:"language_es"`
-		PlaceNameEs string    `json:"place_name_es"`
-		Text        string    `json:"text"`
-		Language    string    `json:"language"`
-		PlaceName   string    `json:"place_name"`
-		Bbox        []float64 `json:"bbox"`
-		Center      []float64 `json:"center"`
-		Geometry    struct {
-			Type        string    `json:"type"`
-			Coordinates []float64 `json:"coordinates"`
-		} `json:"geometry"`
-		Context []struct {
-			ID         string `json:"id"`
-			MapboxID   string `json:"mapbox_id"`
-			Wikidata   string `json:"wikidata"`
-			ShortCode  string `json:"short_code"`
-			TextEs     string `json:"text_es"`
-			LanguageEs string `json:"language_es"`
-			Text       string `json:"text"`
-			Language   string `json:"language"`
-		} `json:"context"`
-	} `json:"features"`
-	Attribution string `json:"attribution"`
-}
-
-type OpenWeatherResponse struct {
-	Coord struct {
-		Lon float64 `json:"lon"`
-		Lat float64 `json:"lat"`
-	} `json:"coord"`
-	Weather []struct {
-		ID          int    `json:"id"`
-		Main        string `json:"main"`
-		Description string `json:"description"`
-		Icon        string `json:"icon"`
-	} `json:"weather"`
-	Base string `json:"base"`
-	Main struct {
-		Temp      float64 `json:"temp"`
-		FeelsLike float64 `json:"feels_like"`
-		TempMin   float64 `json:"temp_min"`
-		TempMax   float64 `json:"temp_max"`
-		Pressure  float64 `json:"pressure"`
-		Humidity  float64 `json:"humidity"`
-	} `json:"main"`
-	Visibility int `json:"visibility"`
-	Wind       struct {
-		Speed float64 `json:"speed"`
-		Deg   float64 `json:"deg"`
-	} `json:"wind"`
-	Clouds struct {
-		All int `json:"all"`
-	} `json:"clouds"`
-	Dt  int `json:"dt"`
-	Sys struct {
-		Type    int    `json:"type"`
-		ID      int    `json:"id"`
-		Country string `json:"country"`
-		Sunrise int    `json:"sunrise"`
-		Sunset  int    `json:"sunset"`
-	} `json:"sys"`
-	Timezone int    `json:"timezone"`
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Cod      int    `json:"cod"`
 }
 
 func main() {
@@ -184,7 +106,7 @@ func main() {
 			defer response.Body.Close()
 
 			// Checking Mapbox response
-			var mapboxData MapboxResponse
+			var mapboxData models.MapboxResponse
 			err = json.NewDecoder(response.Body).Decode(&mapboxData)
 			if err != nil {
 				fmt.Println("Error decoding JSON response:", err)
@@ -259,7 +181,7 @@ func main() {
 			defer response.Body.Close()
 
 			// Checking Open Weather response
-			var openWeatherData OpenWeatherResponse
+			var openWeatherData models.OpenWeatherResponse
 			err = json.NewDecoder(response.Body).Decode(&openWeatherData)
 			if err != nil {
 				fmt.Println("Error decoding JSON response:", err)

@@ -1,4 +1,4 @@
-module weather-app
+module github.com/sebas7603/weather-app-go
 
 go 1.20
 
