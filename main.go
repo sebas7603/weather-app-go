@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -13,6 +14,9 @@ import (
 )
 
 var err error
+
+var file *os.File
+var dbPath = "./db/database.json"
 
 var searches []string
 
@@ -130,6 +134,23 @@ func main() {
 		return
 	}
 
+	file, err = os.Open(dbPath)
+	if err == nil {
+		fileBytes, err := ioutil.ReadFile(dbPath)
+		if err != nil {
+			fmt.Println("Error reading searches file:", err)
+			return
+		}
+
+		if len(fileBytes) > 0 {
+			err = json.Unmarshal(fileBytes, &searches)
+			if err != nil {
+				fmt.Println("Error decoding JSON data:", err)
+				return
+			}
+		}
+	}
+
 	for mainOption != "Exit" {
 		// Clear console
 		fmt.Print("\033[H\033[2J")
@@ -187,6 +208,7 @@ func main() {
 			i, _ := strconv.Atoi(placeIndex)
 			selectedPlace := mapboxData.Features[i-1]
 
+			// Avoid duplicate entries
 			for i, search := range searches {
 				if strings.ToLower(search) == strings.ToLower(selectedPlace.PlaceName) {
 					searches = removeFromSlice(searches, i)
@@ -194,9 +216,24 @@ func main() {
 				}
 			}
 			if len(searches) < 6 {
-				searches = append([]string{selectedPlace.PlaceName}, searches...)
+				searches = append([]string{strings.ToLower(selectedPlace.PlaceName)}, searches...)
 			} else {
-				searches = append([]string{selectedPlace.PlaceName}, searches[:5]...)
+				searches = append([]string{strings.ToLower(selectedPlace.PlaceName)}, searches[:5]...)
+			}
+
+			// Clean the file
+			file, err = os.Create(dbPath)
+			if err != nil {
+				fmt.Println("Error creating file:", err)
+				return
+			}
+			defer file.Close()
+
+			encoder := json.NewEncoder(file)
+			err = encoder.Encode(searches)
+			if err != nil {
+				fmt.Println("Error writing data:", err)
+				return
 			}
 
 			// Request to Open Weather API
@@ -220,12 +257,12 @@ func main() {
 
 			// Show the result data
 			fmt.Printf("\nCity Info:\n")
-			fmt.Printf("City: %s\n", selectedPlace.PlaceName)
-			fmt.Printf("Lon: %v\n", selectedPlace.Center[0])
-			fmt.Printf("Lat: %v\n", selectedPlace.Center[1])
+			fmt.Printf("City:        %s\n", selectedPlace.PlaceName)
+			fmt.Printf("Lon:         %v\n", selectedPlace.Center[0])
+			fmt.Printf("Lat:         %v\n", selectedPlace.Center[1])
 			fmt.Printf("Temperature: %v\n", openWeatherData.Main.Temp)
-			fmt.Printf("Min: %v\n", openWeatherData.Main.TempMin)
-			fmt.Printf("Max: %v\n", openWeatherData.Main.TempMax)
+			fmt.Printf("Min:         %v\n", openWeatherData.Main.TempMin)
+			fmt.Printf("Max:         %v\n", openWeatherData.Main.TempMax)
 			fmt.Println("")
 
 			survey.AskOne(qContinue, &rContinue)
@@ -233,7 +270,7 @@ func main() {
 
 		case "Search History":
 			for _, search := range searches {
-				fmt.Printf("%s\n", search)
+				fmt.Printf("%s\n", strings.Title(search))
 			}
 			fmt.Printf("\n\n")
 
