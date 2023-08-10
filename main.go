@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -12,13 +10,14 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/sebas7603/weather-app-go/api"
+	"github.com/sebas7603/weather-app-go/utils"
 )
 
 var err error
 
 var file *os.File
 var dbFolder = "db"
-var dbPath = fmt.Sprintf("./%s/database.json", dbFolder)
+var dbPath = fmt.Sprintf("%s/database.json", dbFolder)
 
 var searches []string
 
@@ -44,31 +43,16 @@ func main() {
 		return
 	}
 
-	// Creating db folder if not exists
-	_, err = os.Stat(dbFolder)
-	if os.IsNotExist(err) {
-		errDir := os.Mkdir(dbFolder, 0755)
-		if errDir != nil {
-			fmt.Println("Error creating folder:", errDir)
-			return
-		}
+	err = utils.CheckDatabasePath(dbPath)
+	if err != nil {
+		fmt.Println("Error in Database path:", err)
+		return
 	}
 
-	file, err = os.Open(dbPath)
-	if err == nil {
-		fileBytes, err := ioutil.ReadFile(dbPath)
-		if err != nil {
-			fmt.Println("Error reading searches file:", err)
-			return
-		}
-
-		if len(fileBytes) > 0 {
-			err = json.Unmarshal(fileBytes, &searches)
-			if err != nil {
-				fmt.Println("Error decoding JSON data:", err)
-				return
-			}
-		}
+	err = utils.ReadFromFile(dbPath, &searches)
+	if err != nil {
+		fmt.Println("Error reading from file:", err)
+		return
 	}
 
 	for mainOption != "Exit" {
@@ -131,18 +115,9 @@ func main() {
 				searches = append([]string{strings.ToLower(selectedPlace.PlaceName)}, searches[:5]...)
 			}
 
-			// Clean the file
-			file, err = os.Create(dbPath)
+			err = utils.WriteToFileReplacingData(dbPath, searches)
 			if err != nil {
-				fmt.Println("Error creating file:", err)
-				return
-			}
-			defer file.Close()
-
-			encoder := json.NewEncoder(file)
-			err = encoder.Encode(searches)
-			if err != nil {
-				fmt.Println("Error writing data:", err)
+				fmt.Println("Error writing in file:", err)
 				return
 			}
 
