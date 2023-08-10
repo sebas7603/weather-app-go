@@ -5,34 +5,25 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/joho/godotenv"
-
 	"github.com/sebas7603/weather-app-go/api"
+	"github.com/sebas7603/weather-app-go/config"
 	"github.com/sebas7603/weather-app-go/ui"
 	"github.com/sebas7603/weather-app-go/utils"
 	"github.com/sebas7603/weather-app-go/utils/helpers"
 )
 
 var err error
-
-var dbFolder = "db"
-var dbPath = fmt.Sprintf("%s/database.json", dbFolder)
-
+var dbPath string
 var searches []string
 
 func main() {
-	err = godotenv.Load(".env")
+	dbPath, err = config.InitialConfig()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		fmt.Println("Error applying intial config:", err)
 		return
 	}
 
-	err = utils.CheckDatabasePath(dbPath)
-	if err != nil {
-		fmt.Println("Error in Database path:", err)
-		return
-	}
-
+	// Read search history from file
 	err = utils.ReadFromFile(dbPath, &searches)
 	if err != nil {
 		fmt.Println("Error reading from file:", err)
@@ -75,6 +66,7 @@ func main() {
 			}
 			searches = helpers.PrependSliceWithLimit(searches, selectedPlace.PlaceName, 6)
 
+			// Save search history in file
 			err = utils.WriteToFileReplacingData(dbPath, searches)
 			if err != nil {
 				fmt.Println("Error writing in file:", err)
