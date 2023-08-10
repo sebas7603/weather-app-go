@@ -14,7 +14,7 @@ import (
 
 var err error
 var dbPath string
-var searches []string
+var searchHistory []string
 
 func main() {
 	dbPath, err = config.InitialConfig()
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Read search history from file
-	err = utils.ReadFromFile(dbPath, &searches)
+	err = utils.ReadFromFile(dbPath, &searchHistory)
 	if err != nil {
 		fmt.Println("Error reading from file:", err)
 		return
@@ -57,17 +57,9 @@ func main() {
 				break
 			}
 
-			// Avoid duplicate entries
-			for i, search := range searches {
-				if strings.ToLower(search) == strings.ToLower(selectedPlace.PlaceName) {
-					searches = helpers.RemoveFromSliceByIndex(searches, i)
-					break
-				}
-			}
-			searches = helpers.PrependSliceWithLimit(searches, selectedPlace.PlaceName, 6)
-
 			// Save search history in file
-			err = utils.WriteToFileReplacingData(dbPath, searches)
+			searchHistory = helpers.PrependSliceWithLimitAvoidDuplicates(searchHistory, selectedPlace.PlaceName, 6)
+			err = utils.WriteToFileReplacingData(dbPath, searchHistory)
 			if err != nil {
 				fmt.Println("Error writing in file:", err)
 				return
@@ -86,7 +78,7 @@ func main() {
 			break
 
 		case "Search History":
-			for _, search := range searches {
+			for _, search := range searchHistory {
 				fmt.Printf("%s\n", strings.Title(search))
 			}
 			fmt.Printf("\n\n")
