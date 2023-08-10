@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/joho/godotenv"
@@ -186,6 +187,12 @@ func main() {
 			i, _ := strconv.Atoi(placeIndex)
 			selectedPlace := mapboxData.Features[i-1]
 
+			for i, search := range searches {
+				if strings.ToLower(search) == strings.ToLower(selectedPlace.PlaceName) {
+					searches = removeFromSlice(searches, i)
+					break
+				}
+			}
 			if len(searches) < 6 {
 				searches = append([]string{selectedPlace.PlaceName}, searches...)
 			} else {
@@ -242,4 +249,9 @@ func buildUrlWithParams(baseURL string, params map[string]string) (paramsURL str
 		paramsURL = fmt.Sprintf("%s&%s=%s", paramsURL, index, param)
 	}
 	return
+}
+
+// Remove a value into a slice at a given index, preserving the order of existing elements
+func removeFromSlice(array []string, index int) []string {
+	return append(array[:index], array[index+1:]...)
 }
